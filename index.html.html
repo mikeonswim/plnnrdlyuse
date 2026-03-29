@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Planner">
+<title>Daily Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#1C1F3B;--dark-gray:#323338;--medium-gray:#676879;--light-gray:#C5C7D0;--white:#FFFFFF;--blue:#0073EA;--blue-light:#D6EAFF;--green:#00C875;--green-light:#D6F5E8;--gold:#FDAB3D;--gold-light:#FEF0D6;--red:#E2445C;--red-light:#FDDEDE;--teal:#00D2D2;--teal-light:#D6F7F7;--purple:#A25DDC;--purple-light:#EEDDF7}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--white);min-height:100vh;overscroll-behavior:none}
+.header{position:sticky;top:0;z-index:100;background:var(--navy);border-bottom:1px solid rgba(255,255,255,.06);padding:16px 20px 12px}
+.header-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.header h1{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--blue)}
+.header-sub{font-size:10px;color:var(--light-gray);letter-spacing:1px;text-transform:uppercase}
+.import-btn{background:var(--dark-gray);border:1px solid rgba(255,255,255,.1);color:var(--light-gray);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;padding:8px 14px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .2s}
+.import-btn:active{background:var(--blue);color:var(--white)}
+.import-btn svg{width:14px;height:14px}
+.tabs{display:flex;gap:4px;background:rgba(255,255,255,.04);border-radius:10px;padding:3px}
+.tab{flex:1;text-align:center;padding:8px 6px;font-size:11px;font-weight:600;color:var(--medium-gray);border-radius:8px;cursor:pointer;transition:all .2s;letter-spacing:.5px;text-transform:uppercase}
+.tab.active{background:var(--blue);color:var(--white);box-shadow:0 2px 8px rgba(0,115,234,.3)}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:16px 20px}
+.metric-card{background:var(--dark-gray);border-radius:12px;padding:12px 10px;text-align:center;border:1px solid rgba(255,255,255,.04)}
+.metric-value{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;line-height:1;margin-bottom:4px}
+.metric-label{font-size:8px;text-transform:uppercase;letter-spacing:1px;color:var(--medium-gray);font-weight:600}
+.search-bar{padding:0 20px 12px}
+.search-input{width:100%;background:var(--dark-gray);border:1px solid rgba(255,255,255,.06);color:var(--white);font-family:'DM Sans',sans-serif;font-size:13px;padding:10px 14px 10px 36px;border-radius:10px;outline:none;transition:border .2s;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23676879' viewBox='0 0 24 24'%3E%3Cpath d='M21.71 20.29L18 16.61A9 9 0 1 0 16.61 18l3.68 3.68a1 1 0 0 0 1.42 0 1 1 0 0 0 0-1.39zM11 18a7 7 0 1 1 7-7 7 7 0 0 1-7 7z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:12px center}
+.search-input:focus{border-color:var(--blue)}
+.search-input::placeholder{color:var(--medium-gray)}
+.content{padding:0 20px 100px}
+.section-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--medium-gray);margin:16px 0 10px;padding-left:2px}
+.case-card{background:var(--dark-gray);border-radius:14px;padding:14px 16px;margin-bottom:8px;border:1px solid rgba(255,255,255,.04);border-left:3px solid var(--blue);cursor:pointer;transition:all .2s}
+.case-card.status-completed{border-left-color:var(--green)}
+.case-card.status-pending{border-left-color:var(--gold)}
+.case-card.status-cancelled{border-left-color:var(--red)}
+.case-card.status-scheduled{border-left-color:var(--blue)}
+.case-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.case-patient{font-size:14px;font-weight:700;color:var(--white);letter-spacing:.3px}
+.case-status{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;padding:3px 8px;border-radius:6px;text-transform:uppercase;letter-spacing:1px;flex-shrink:0}
+.badge-scheduled{background:var(--blue-light);color:var(--blue)}
+.badge-pending{background:var(--gold-light);color:#B87A00}
+.badge-completed{background:var(--green-light);color:#00875A}
+.badge-cancelled{background:var(--red-light);color:var(--red)}
+.case-details{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;margin-bottom:8px}
+.case-detail{font-size:11px;color:var(--light-gray);display:flex;align-items:center;gap:4px}
+.case-detail .label{color:var(--medium-gray);font-weight:600;font-size:9px;text-transform:uppercase;letter-spacing:.5px;min-width:32px}
+.case-missing{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.missing-tag{font-size:9px;font-weight:600;padding:2px 7px;border-radius:4px;background:rgba(226,68,92,.15);color:var(--red);text-transform:uppercase;letter-spacing:.5px}
+.ready-tag{font-size:9px;font-weight:600;padding:2px 7px;border-radius:4px;background:rgba(0,200,117,.15);color:var(--green);text-transform:uppercase;letter-spacing:.5px}
+.case-expanded{display:none;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.06)}
+.case-card.expanded .case-expanded{display:block}
+.exp-section{margin-bottom:10px}
+.exp-title{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--blue);margin-bottom:6px}
+.exp-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px}
+.exp-item{font-size:11px;color:var(--light-gray);display:flex;align-items:center;gap:4px}
+.exp-item .label{color:var(--medium-gray);font-weight:600;font-size:9px;text-transform:uppercase;letter-spacing:.5px;min-width:42px}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
+.dot-z{background:var(--green)}
+.dot-x{background:var(--gold)}
+.dot-c{background:var(--red)}
+.dot-empty{background:var(--medium-gray);opacity:.3}
+.exp-comments{font-size:11px;color:var(--light-gray);line-height:1.4;white-space:pre-line;margin-top:4px;padding:8px 10px;background:rgba(255,255,255,.03);border-radius:8px}
+.proc-card{background:var(--dark-gray);border-radius:14px;padding:14px 16px;margin-bottom:8px;border:1px solid rgba(255,255,255,.04)}
+.proc-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.proc-patient{font-size:13px;font-weight:700}
+.proc-type{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;padding:3px 8px;border-radius:6px;text-transform:uppercase;letter-spacing:1px}
+.proc-vivaer{background:var(--blue-light);color:var(--blue)}
+.proc-rhinaer{background:var(--green-light);color:#00875A}
+.proc-laryngoscopy{background:var(--gold-light);color:#B87A00}
+.proc-details{display:flex;gap:12px;flex-wrap:wrap}
+.proc-detail{font-size:11px;color:var(--light-gray)}
+.proc-detail .label{color:var(--medium-gray);font-size:9px;font-weight:600;text-transform:uppercase}
+.auth-badge{font-size:9px;font-weight:600;padding:2px 7px;border-radius:4px;text-transform:uppercase}
+.auth-authorized{background:rgba(0,200,117,.15);color:var(--green)}
+.auth-pending{background:rgba(253,171,61,.15);color:var(--gold)}
+.auth-denied{background:rgba(226,68,92,.15);color:var(--red)}
+.img-card{background:var(--dark-gray);border-radius:14px;padding:14px 16px;margin-bottom:8px;border:1px solid rgba(255,255,255,.04)}
+.img-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.img-patient{font-size:13px;font-weight:700}
+.img-type-badge{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;padding:3px 8px;border-radius:6px;text-transform:uppercase;letter-spacing:1px}
+.type-mri{background:var(--purple-light);color:var(--purple)}
+.type-ct{background:var(--teal-light);color:#009999}
+.type-pet{background:var(--gold-light);color:#B87A00}
+.type-xray{background:var(--blue-light);color:var(--blue)}
+.type-other{background:rgba(255,255,255,.08);color:var(--light-gray)}
+.img-status{font-size:9px;font-weight:600;padding:2px 7px;border-radius:4px;text-transform:uppercase;margin-top:6px;display:inline-block}
+.img-completed{background:rgba(0,200,117,.15);color:var(--green)}
+.img-pending{background:rgba(253,171,61,.15);color:var(--gold)}
+.img-notes{font-size:11px;color:var(--medium-gray);margin-top:6px;line-height:1.4;white-space:pre-line}
+.filter-row{display:flex;gap:6px;padding:0 20px 8px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.filter-row::-webkit-scrollbar{display:none}
+.filter-chip{font-size:10px;font-weight:600;padding:6px 12px;border-radius:20px;background:var(--dark-gray);color:var(--medium-gray);border:1px solid rgba(255,255,255,.06);cursor:pointer;white-space:nowrap;transition:all .2s;text-transform:uppercase;letter-spacing:.5px}
+.filter-chip.active{background:var(--blue);color:var(--white);border-color:var(--blue)}
+.empty-state{text-align:center;padding:60px 20px;color:var(--medium-gray)}
+.empty-state svg{width:48px;height:48px;margin-bottom:12px;opacity:.3}
+.empty-state h3{font-size:14px;margin-bottom:6px;color:var(--light-gray)}
+.empty-state p{font-size:12px;line-height:1.5}
+.last-updated{text-align:center;padding:20px;font-size:10px;color:var(--medium-gray);font-family:'JetBrains Mono',monospace;letter-spacing:.5px}
+.file-input{display:none}
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--green);color:var(--white);font-size:12px;font-weight:600;padding:10px 20px;border-radius:10px;z-index:200;transition:transform .3s ease;box-shadow:0 4px 20px rgba(0,0,0,.3)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.error{background:var(--red)}
+.tab-count{font-family:'JetBrains Mono',monospace;font-size:9px;background:rgba(255,255,255,.15);padding:1px 5px;border-radius:4px;margin-left:4px}
+.tab.active .tab-count{background:rgba(255,255,255,.25)}
+.risk-badge{font-size:9px;font-weight:600;padding:2px 7px;border-radius:4px;text-transform:uppercase;letter-spacing:.5px}
+.risk-high{background:rgba(226,68,92,.15);color:var(--red)}
+.risk-medium{background:rgba(253,171,61,.15);color:var(--gold)}
+.risk-low{background:rgba(0,200,117,.15);color:var(--green)}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-top">
+    <div><h1>PLANNER</h1><div class="header-sub">Daily Tasks · Overview</div></div>
+    <label class="import-btn" for="jsonFileInput">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>SYNC
+    </label>
+    <input type="file" id="jsonFileInput" class="file-input" accept=".json,.txt">
+  </div>
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-tab="cases">Tasks <span class="tab-count" id="count-cases">0</span></div>
+    <div class="tab" data-tab="procedures">Items <span class="tab-count" id="count-procedures">0</span></div>
+    <div class="tab" data-tab="imaging">Orders <span class="tab-count" id="count-imaging">0</span></div>
+  </div>
+</div>
+<div id="metrics-cases" class="metrics"></div>
+<div id="metrics-procedures" class="metrics" style="display:none"></div>
+<div id="metrics-imaging" class="metrics" style="display:none"></div>
+<div id="filters" class="filter-row"></div>
+<div class="search-bar"><input type="text" class="search-input" id="searchInput" placeholder="Search..."></div>
+<div class="content" id="content"></div>
+<div class="last-updated" id="lastUpdated"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+let DATA={cases:[],procedures:[],imaging:[],exportDate:null};
+let currentTab='cases',currentFilter='all',searchQuery='';
+const saved=localStorage.getItem('pln_d');
+if(saved){try{DATA=JSON.parse(saved)}catch(e){}}
+
+document.getElementById('jsonFileInput').addEventListener('change',function(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    try{let t=ev.target.result.replace(/^\uFEFF/,'').replace(/[\u201C\u201D]/g,'"').replace(/[\u2018\u2019]/g,"'");
+    DATA=JSON.parse(t);localStorage.setItem('pln_d',JSON.stringify(DATA));
+    showToast('Synced — '+(DATA.cases?.length||0)+' items');renderAll()}
+    catch(err){showToast('Failed: '+err.message,true)}};
+  reader.readAsText(file);this.value='';
+});
+
+document.addEventListener('paste',function(e){
+  const t=(e.clipboardData||window.clipboardData).getData('text');if(!t)return;
+  try{let c=t.replace(/^\uFEFF/,'').replace(/[\u201C\u201D]/g,'"').replace(/[\u2018\u2019]/g,"'");
+  DATA=JSON.parse(c);localStorage.setItem('pln_d',JSON.stringify(DATA));
+  showToast('Synced — '+(DATA.cases?.length||0)+' items');renderAll()}catch(e){}
+});
+
+document.getElementById('tabs').addEventListener('click',function(e){
+  const tab=e.target.closest('.tab');if(!tab)return;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  tab.classList.add('active');currentTab=tab.dataset.tab;currentFilter='all';searchQuery='';
+  document.getElementById('searchInput').value='';renderAll();
+});
+
+document.getElementById('searchInput').addEventListener('input',function(e){searchQuery=e.target.value.toLowerCase();renderContent()});
+
+function showToast(m,err){const t=document.getElementById('toast');t.textContent=m;t.className='toast'+(err?' error':'');setTimeout(()=>t.classList.add('show'),10);setTimeout(()=>t.classList.remove('show'),3000)}
+
+function dot(val){const v=(val||'').toLowerCase();if(v==='z')return'<span class="status-dot dot-z"></span>';if(v==='x')return'<span class="status-dot dot-x"></span>';if(v==='c')return'<span class="status-dot dot-c"></span>';return'<span class="status-dot dot-empty"></span>'}
+
+function renderAll(){renderMetrics();renderFilters();renderContent();
+  document.getElementById('count-cases').textContent=DATA.cases?.length||0;
+  document.getElementById('count-procedures').textContent=DATA.procedures?.length||0;
+  document.getElementById('count-imaging').textContent=DATA.imaging?.length||0;
+  const el=document.getElementById('lastUpdated');el.textContent=DATA.exportDate?'Last sync: '+DATA.exportDate:''}
+
+function renderMetrics(){
+  ['cases','procedures','imaging'].forEach(t=>document.getElementById('metrics-'+t).style.display=currentTab===t?'grid':'none');
+  if(currentTab==='cases'){const c=DATA.cases||[];
+    document.getElementById('metrics-cases').innerHTML=mc(c.filter(x=>x.status==='SCHEDULED'||x.status==='PENDING').length,'Active','var(--blue)')+mc(c.filter(x=>x.ready==='YES').length,'Ready','var(--green)')+mc(c.filter(x=>x.ready==='NO').length,'Not Ready','var(--red)')+mc(c.length,'Total','var(--teal)')}
+  if(currentTab==='procedures'){const p=DATA.procedures||[];
+    document.getElementById('metrics-procedures').innerHTML=mc(p.length,'Total','var(--blue)')+mc(p.filter(x=>x.type==='Vivaer').length,'Type A','var(--teal)')+mc(p.filter(x=>x.type==='Rhinaer').length,'Type B','var(--green)')+mc(p.filter(x=>x.type==='Laryngoscopy').length,'Type C','var(--gold)')}
+  if(currentTab==='imaging'){const i=DATA.imaging||[];const done=i.filter(x=>x.status==='Completed').length;
+    document.getElementById('metrics-imaging').innerHTML=mc(i.length,'Total','var(--blue)')+mc(done,'Done','var(--green)')+mc(i.filter(x=>x.status==='Pending').length,'Open','var(--gold)')+mc(i.length>0?Math.round(done/i.length*100)+'%':'0%','Rate','var(--teal)')}}
+
+function mc(v,l,c){return'<div class="metric-card"><div class="metric-value" style="color:'+c+'">'+v+'</div><div class="metric-label">'+l+'</div></div>'}
+
+function renderFilters(){
+  const el=document.getElementById('filters');
+  let chips=currentTab==='cases'?['All','Scheduled','Pending','Completed','Cancelled','Not Ready','High Risk']:currentTab==='procedures'?['All','Vivaer','Rhinaer','Laryngoscopy','Authorized','Pending','Denied']:['All','MRI','CT Sinus','CT Neck','PET','Completed','Pending'];
+  el.innerHTML=chips.map(c=>'<div class="filter-chip'+(currentFilter===c.toLowerCase()?' active':'')+'" data-filter="'+c.toLowerCase()+'">'+c+'</div>').join('');
+  el.querySelectorAll('.filter-chip').forEach(ch=>{ch.addEventListener('click',function(){currentFilter=this.dataset.filter;el.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));this.classList.add('active');renderContent()})})
+}
+
+function renderContent(){const el=document.getElementById('content');if(currentTab==='cases')renderCases(el);else if(currentTab==='procedures')renderProcs(el);else renderImgs(el)}
+
+function renderCases(el){
+  let cases=DATA.cases||[];
+  if(currentFilter==='not ready')cases=cases.filter(c=>c.ready==='NO');
+  else if(currentFilter==='high risk')cases=cases.filter(c=>(c.risk||'').toLowerCase()==='high');
+  else if(currentFilter!=='all')cases=cases.filter(c=>(c.status||'').toLowerCase()===currentFilter);
+  if(searchQuery)cases=cases.filter(c=>(c.patient||'').toLowerCase().includes(searchQuery)||(c.mrn||'').toString().toLowerCase().includes(searchQuery)||(c.procedure||'').toLowerCase().includes(searchQuery)||(c.site||'').toLowerCase().includes(searchQuery)||(c.comments||'').toLowerCase().includes(searchQuery));
+  if(!cases.length){el.innerHTML=empty('No items found');return}
+  const grouped={};cases.forEach(c=>{const m=c.month||'UNSCHEDULED';if(!grouped[m])grouped[m]=[];grouped[m].push(c)});
+  let h='';
+  for(const m in grouped){
+    h+='<div class="section-label">'+m+' ('+grouped[m].length+')</div>';
+    grouped[m].forEach(c=>{
+      const sc='status-'+(c.status||'').toLowerCase();
+      const bc='badge-'+(c.status||'').toLowerCase();
+      const miss=c.missing?c.missing.split(', ').filter(x=>x).map(x=>'<span class="missing-tag">'+x+'</span>').join(''):'';
+      const rdy=c.ready==='YES'?'<span class="ready-tag">Ready</span>':'';
+      const risk=c.risk?'<span class="risk-badge risk-'+(c.risk||'').toLowerCase()+'">'+c.risk+'</span>':'';
+
+      h+='<div class="case-card '+sc+'" onclick="this.classList.toggle(\'expanded\')">';
+      h+='<div class="case-header"><div class="case-patient">'+esc(c.patient)+'</div><div class="case-status '+bc+'">'+esc(c.status)+'</div></div>';
+      h+='<div class="case-details">';
+      h+='<div class="case-detail"><span class="label">Date</span>'+esc(c.dos)+'</div>';
+      h+='<div class="case-detail"><span class="label">Loc</span>'+esc(c.site)+'</div>';
+      h+='<div class="case-detail"><span class="label">ID</span>'+esc(c.mrn)+'</div>';
+      h+='<div class="case-detail"><span class="label">Due</span>'+(c.daysOut!=null?c.daysOut:'—')+'</div>';
+      h+='</div>';
+      if(miss||rdy||risk)h+='<div class="case-missing">'+rdy+risk+miss+'</div>';
+
+      // EXPANDED DETAIL
+      h+='<div class="case-expanded">';
+
+      // Checklist
+      h+='<div class="exp-section"><div class="exp-title">Checklist</div><div class="exp-grid">';
+      h+='<div class="exp-item">'+dot(c.emailedPt)+' <span class="label">Email</span></div>';
+      h+='<div class="exp-item">'+dot(c.epic)+' <span class="label">Epic</span></div>';
+      h+='<div class="exp-item">'+dot(c.preOp)+' <span class="label">Pre-Op</span></div>';
+      h+='<div class="exp-item">'+dot(c.auth)+' <span class="label">Auth</span></div>';
+      h+='<div class="exp-item">'+dot(c.scanned)+' <span class="label">Scan</span></div>';
+      h+='<div class="exp-item">'+dot(c.clearance)+' <span class="label">Clear</span></div>';
+      h+='<div class="exp-item">'+dot(c.labs)+' <span class="label">Labs</span></div>';
+      h+='<div class="exp-item">'+dot(c.ekg)+' <span class="label">EKG</span></div>';
+      h+='<div class="exp-item">'+dot(c.cardiac)+' <span class="label">Cardiac</span></div>';
+      h+='<div class="exp-item">'+dot(c.cxr)+' <span class="label">CXR</span></div>';
+      h+='<div class="exp-item">'+dot(c.cd)+' <span class="label">CD</span></div>';
+      h+='<div class="exp-item">'+dot(c.pcp)+' <span class="label">PCP</span></div>';
+      h+='</div></div>';
+
+      // Details
+      h+='<div class="exp-section"><div class="exp-title">Details</div><div class="exp-grid">';
+      if(c.procedure)h+='<div class="exp-item" style="grid-column:1/-1"><span class="label">Proc</span>'+esc(c.procedure)+'</div>';
+      if(c.insurance)h+='<div class="exp-item"><span class="label">Ins</span>'+esc(c.insurance)+'</div>';
+      if(c.equipment&&c.equipment!=='N/A')h+='<div class="exp-item"><span class="label">Equip</span>'+esc(c.equipment)+'</div>';
+      if(c.meds&&c.meds!=='N/A')h+='<div class="exp-item"><span class="label">Meds</span>'+esc(c.meds)+'</div>';
+      if(c.tel)h+='<div class="exp-item"><span class="label">Tel</span><a href="tel:'+c.tel+'" style="color:var(--blue);text-decoration:none" onclick="event.stopPropagation()">'+esc(c.tel)+'</a></div>';
+      h+='</div></div>';
+
+      // Auth & Appointments
+      if(c.authNum||c.authExp||c.pcpName||c.preOpAppt||c.postOp1){
+        h+='<div class="exp-section"><div class="exp-title">Auth & Appts</div><div class="exp-grid">';
+        if(c.authNum)h+='<div class="exp-item"><span class="label">Auth#</span>'+esc(c.authNum)+'</div>';
+        if(c.authExp)h+='<div class="exp-item"><span class="label">Exp</span>'+esc(c.authExp)+'</div>';
+        if(c.pcpName)h+='<div class="exp-item"><span class="label">PCP</span>'+esc(c.pcpName)+'</div>';
+        if(c.preOpAppt)h+='<div class="exp-item"><span class="label">Pre-Op</span>'+esc(c.preOpAppt)+'</div>';
+        if(c.postOp1)h+='<div class="exp-item"><span class="label">Post-Op</span>'+esc(c.postOp1)+'</div>';
+        h+='</div></div>'}
+
+      // Next Action
+      if(c.nextAction)h+='<div class="exp-section"><div class="exp-title">Next</div><div style="font-size:11px;color:var(--gold)">'+esc(c.nextAction)+'</div></div>';
+
+      // Comments
+      if(c.comments)h+='<div class="exp-section"><div class="exp-title">Notes</div><div class="exp-comments">'+esc(c.comments)+'</div></div>';
+
+      h+='</div></div>';
+    })}
+  el.innerHTML=h;
+}
+
+function renderProcs(el){
+  let p=DATA.procedures||[];
+  if(currentFilter!=='all'){if(['vivaer','rhinaer','laryngoscopy'].includes(currentFilter))p=p.filter(x=>(x.type||'').toLowerCase()===currentFilter);else p=p.filter(x=>(x.authStatus||'').toLowerCase()===currentFilter)}
+  if(searchQuery)p=p.filter(x=>(x.patient||'').toLowerCase().includes(searchQuery)||(x.insurance||'').toLowerCase().includes(searchQuery)||(x.type||'').toLowerCase().includes(searchQuery));
+  if(!p.length){el.innerHTML=empty('No items found');return}
+  let h='<div class="section-label">Items ('+p.length+')</div>';
+  p.forEach(x=>{const tc='proc-'+(x.type||'').toLowerCase();const ac='auth-'+(x.authStatus||'').toLowerCase();
+    h+='<div class="proc-card"><div class="proc-header"><div class="proc-patient">'+esc(x.patient)+'</div><div class="proc-type '+tc+'">'+esc(x.type)+'</div></div><div class="proc-details"><div class="proc-detail"><span class="label">Grp</span> '+esc(x.insurance)+'</div><div class="proc-detail"><span class="label">Ref</span> '+esc(x.cpt1)+'</div>';
+    if(x.authStatus)h+='<div class="proc-detail"><span class="auth-badge '+ac+'">'+x.authStatus+'</span></div>';
+    h+='</div></div>'});
+  el.innerHTML=h;
+}
+
+function renderImgs(el){
+  let i=DATA.imaging||[];
+  if(currentFilter!=='all'){if(['completed','pending'].includes(currentFilter))i=i.filter(x=>(x.status||'').toLowerCase()===currentFilter);else i=i.filter(x=>(x.type||'').toLowerCase().includes(currentFilter))}
+  if(searchQuery)i=i.filter(x=>(x.patient||'').toLowerCase().includes(searchQuery)||(x.type||'').toLowerCase().includes(searchQuery));
+  if(!i.length){el.innerHTML=empty('No orders found');return}
+  let h='<div class="section-label">Orders ('+i.length+')</div>';
+  i.forEach(x=>{const tl=(x.type||'').toLowerCase();let tc='type-other';if(tl.includes('mri'))tc='type-mri';else if(tl.includes('ct'))tc='type-ct';else if(tl.includes('pet'))tc='type-pet';else if(tl.includes('xray')||tl.includes('x-ray'))tc='type-xray';
+    const sc=(x.status||'').toLowerCase()==='completed'?'img-completed':'img-pending';
+    h+='<div class="img-card"><div class="img-header"><div class="img-patient">'+esc(x.patient)+'</div><div class="img-type-badge '+tc+'">'+esc(x.type)+'</div></div><div class="proc-details"><div class="proc-detail"><span class="label">ID</span> '+esc(x.mrn)+'</div>';
+    if(x.dateOrdered)h+='<div class="proc-detail"><span class="label">Sent</span> '+x.dateOrdered+'</div>';
+    if(x.dateCompleted)h+='<div class="proc-detail"><span class="label">Done</span> '+x.dateCompleted+'</div>';
+    h+='</div><div class="img-status '+sc+'">'+(x.status||'Unknown')+'</div>';
+    if(x.notes)h+='<div class="img-notes">'+esc(x.notes)+'</div>';
+    h+='</div>'});
+  el.innerHTML=h;
+}
+
+function esc(v){return(v||'—').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function empty(m){return'<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12h6M12 9v6M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><h3>'+m+'</h3><p>Tap Sync to load data.</p></div>'}
+
+renderAll();
+</script>
+</body>
+</html>
